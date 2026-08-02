@@ -5,31 +5,32 @@ context_bridge:
     version: "1"
     previous_capsule: "None"
     bridge_mode: "Standard"
+    source_pointer_convention: "T## = turn numbers assigned by Stage 1 in reading order; original transcript is unnumbered"
   project: "Trailhead Tracker"
   assistant_roles:
     - "Software build assistant for a small hike-logging web app"
   current_objective: "Add CSV export of all logged hikes"
   current_task: "Begin CSV export implementation; log form just completed"
   confirmed_requirements:
-    - "Log hikes with date, trail name, distance, elevation gain, notes (M03)"
-    - "Offline support eventually (M03; timing unspecified)"
+    - "Log hikes with date, trail name, distance, elevation gain, notes (T03)"
+    - "Offline support eventually (T03; timing unspecified)"
   constraints:
-    - "Privacy first: no cloud sync in v1 (M07)"
+    - "Privacy first: no cloud sync in v1 (T07)"
   active_decisions:
-    - "SQLite for storage, explicitly approved (M04-M05)"
+    - "SQLite for storage, explicitly approved (T04-T05)"
   completed_work:
-    - "schema.sql v2 including elevation_gain (M11)"
-    - "Log form with date/distance validation (M17)"
+    - "schema.sql v2 including elevation_gain (T11)"
+    - "Log form with date/distance validation (T17)"
   current_working_state: "Schema and log form done; CSV export not started"
   artifacts:
     - artifact: "schema.sql"
       type: "database schema"
       version_or_status: "v2"
-      source_or_location: "Referenced at M11; location not supplied"
+      source_or_location: "Referenced at T11; location not supplied"
   rejected_and_superseded_directions:
-    - "Cloud sync rejected for v1 (M07); privacy rationale; revisit in v2"
+    - "Cloud sync rejected for v1 (T07); privacy rationale; revisit in v2"
   open_questions:
-    - "Layout priority: mobile-first (M08) vs desktop-priority (M14)"
+    - "Layout priority: mobile-first (T08) vs desktop-priority (T14)"
   risks_and_uncertainties:
     - "Offline scope undefined"
     - "Layout conflict unresolved"
@@ -37,16 +38,16 @@ context_bridge:
     - "Confirm layout priority (C1)"
     - "Implement CSV export against schema.sql v2"
   user_preferences:
-    - "Privacy-conscious; prefers moving fast (M16)"
+    - "Privacy-conscious; prefers moving fast (T16)"
   do_not_forget:
     - "Cloud sync is rejected for v1"
     - "Dark mode was suggested, never approved"
   do_not_assume:
     - "Do not assume desktop-priority was formally approved (C1)"
   sensitive_information:
-    - "Test-feedback contact on file; see source M18 (masked)"
+    - "Test-feedback contact on file; see source T18 (masked)"
   verification_status:
     audit_verdict: "PASS WITH WARNINGS"
     unresolved_confirmations:
-      - "Does desktop-priority (M14) supersede mobile-first (M08)?"
+      - "Does desktop-priority (T14) supersede mobile-first (T08)?"
   resume_instruction: "Confirm layout priority (C1), then implement CSV export of all hikes against schema.sql v2"

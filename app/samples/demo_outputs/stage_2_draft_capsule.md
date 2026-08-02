@@ -18,31 +18,31 @@ Add CSV export of all logged hikes.
 Begin CSV export implementation; log form was just completed.
 
 4. CONFIRMED REQUIREMENTS
-Log hikes with date, trail name, distance, elevation gain, notes (M03).
-Offline support eventually (M03; timing unspecified).
+Log hikes with date, trail name, distance, elevation gain, notes (T03).
+Offline support eventually (T03; timing unspecified).
 
 5. CONSTRAINTS
-Privacy first: no cloud sync in v1 (M07).
+Privacy first: no cloud sync in v1 (T07).
 
 6. DECISIONS MADE
-SQLite for storage — explicitly approved (M04-M05).
+SQLite for storage — explicitly approved (T04-T05).
 
 7. WORK COMPLETED
-schema.sql v2 including elevation_gain (M11). Log form with date/distance
-validation (M17).
+schema.sql v2 including elevation_gain (T11). Log form with date/distance
+validation (T17).
 
 8. CURRENT WORKING STATE
 Schema and log form done; CSV export not started.
 
 9. ARTIFACT REGISTER
-schema.sql — v2 — location not supplied (M11).
+schema.sql — v2 — location not supplied (T11).
 
 10. REJECTED OR SUPERSEDED DIRECTIONS
 None identified.
 
 11. OPEN QUESTIONS
-Layout priority: mobile-first (M08) vs. desktop-priority (M14) — user
-deferred confirmation (M15-M16).
+Layout priority: mobile-first (T08) vs. desktop-priority (T14) — user
+deferred confirmation (T15-T16).
 
 12. KNOWN RISKS AND UNCERTAINTIES
 Offline scope undefined. Layout conflict unresolved.
@@ -51,7 +51,7 @@ Offline scope undefined. Layout conflict unresolved.
 1) Confirm layout priority. 2) Implement CSV export.
 
 14. USER PREFERENCES
-Privacy-conscious; prefers moving fast ("let's move on", M16).
+Privacy-conscious; prefers moving fast ("let's move on", T16).
 
 15. DO NOT FORGET
 Cloud sync is off the table for v1. Dark mode was suggested, never approved.
@@ -60,11 +60,13 @@ Cloud sync is off the table for v1. Dark mode was suggested, never approved.
 Do not assume desktop-priority was formally approved (C1 unresolved).
 
 17. SOURCE POINTERS
-M03 requirements; M04-M05 storage decision; M07 sync rejection; M08/M14
-layout conflict; M11 schema v2; M17 log form; M19 CSV objective.
+Turn numbers T01-T20 were assigned by the evidence ledger in reading order;
+the original transcript is unnumbered. T03 requirements; T04-T05 storage
+decision; T07 sync rejection; T08/T14 layout conflict; T11 schema v2; T17
+log form; T19 CSV objective.
 
 18. SENSITIVE INFORMATION
-Test feedback contact: jordan.doe@example.com (M18).
+Test feedback contact: jordan.doe@example.com (T18).
 
 19. RESUME INSTRUCTION
 Resume by confirming layout priority (C1), then implement CSV export of all

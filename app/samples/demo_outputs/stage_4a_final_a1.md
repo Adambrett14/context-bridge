@@ -17,25 +17,25 @@ Add CSV export of all logged hikes.
 Begin CSV export implementation; log form was just completed.
 
 4. CONFIRMED REQUIREMENTS
-Log hikes with date, trail name, distance, elevation gain, notes (M03).
-Offline support eventually (M03; timing unspecified).
+Log hikes with date, trail name, distance, elevation gain, notes (T03).
+Offline support eventually (T03; timing unspecified).
 
 5. CONSTRAINTS
-Privacy first: no cloud sync in v1 (M07).
+Privacy first: no cloud sync in v1 (T07).
 
 6. DECISIONS MADE
-SQLite for storage — explicitly approved (M04-M05).
+SQLite for storage — explicitly approved (T04-T05).
 
 7. WORK COMPLETED
-schema.sql v2 including elevation_gain (M11). Log form with date/distance
-validation (M17).
+schema.sql v2 including elevation_gain (T11). Log form with date/distance
+validation (T17).
 
 8. CURRENT WORKING STATE
 Schema and log form done; CSV export not started.
 
 9. ARTIFACT REGISTER
-schema.sql — v2 — location not supplied (M11).
+schema.sql — v2 — location not supplied (T11).
 
 10. REJECTED OR SUPERSEDED DIRECTIONS
-Cloud sync rejected for v1 (M07) — privacy rationale; revisit in v2.
+Cloud sync rejected for v1 (T07) — privacy rationale; revisit in v2.
 [Restored per audit correction 1.]

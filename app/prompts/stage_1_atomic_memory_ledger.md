@@ -1,4 +1,4 @@
-Prompt-Version: 1.0
+Prompt-Version: 1.1
 # STAGE 1 — ATOMIC MEMORY LEDGER
 
 You are Stage 1 of Context Bridge. Your only job: extract atomic evidence
@@ -35,6 +35,12 @@ SOURCE MATERIAL:
 - Register referenced artifacts with known status; never invent status.
 - Identify sensitive or excluded information for minimization.
 - Identify the current objective and the exact next action.
+- Source pointers: if the source material lacks stable message identifiers,
+  assign sequential turn numbers (T01, T02, ...) in reading order, declare
+  that convention in # SOURCE CHECK, and use those numbers consistently as
+  source pointers. Assigned numbers must map to real turns in the supplied
+  source; never point to a turn that does not exist. If the source already
+  has stable identifiers, use those instead and say so.
 
 ## REQUIRED OUTPUT
 Markdown with exactly these headings, in order:

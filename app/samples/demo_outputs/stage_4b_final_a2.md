@@ -2,8 +2,8 @@
 # A. HUMAN-READABLE CONTINUITY CAPSULE (Sections 11-19)
 
 11. OPEN QUESTIONS
-Layout priority: mobile-first (M08) vs. desktop-priority (M14) — user
-deferred confirmation (M15-M16).
+Layout priority: mobile-first (T08) vs. desktop-priority (T14) — user
+deferred confirmation (T15-T16).
 
 12. KNOWN RISKS AND UNCERTAINTIES
 Offline scope undefined. Layout conflict unresolved.
@@ -12,7 +12,7 @@ Offline scope undefined. Layout conflict unresolved.
 1) Confirm layout priority. 2) Implement CSV export against schema.sql v2.
 
 14. USER PREFERENCES
-Privacy-conscious; prefers moving fast ("let's move on", M16).
+Privacy-conscious; prefers moving fast ("let's move on", T16).
 
 15. DO NOT FORGET
 Cloud sync is rejected for v1. Dark mode was suggested, never approved.
@@ -21,11 +21,13 @@ Cloud sync is rejected for v1. Dark mode was suggested, never approved.
 Do not assume desktop-priority was formally approved (C1 unresolved).
 
 17. SOURCE POINTERS
-M03 requirements; M04-M05 storage decision; M07 sync rejection; M08/M14
-layout conflict; M11 schema v2; M17 log form; M19 CSV objective.
+Turn numbers T01-T20 were assigned by the evidence ledger in reading order;
+the original transcript is unnumbered. T03 requirements; T04-T05 storage
+decision; T07 sync rejection; T08/T14 layout conflict; T11 schema v2; T17
+log form; T19 CSV objective.
 
 18. SENSITIVE INFORMATION
-Test-feedback contact on file — see source M18. [Masked per audit
+Test-feedback contact on file — see source T18. [Masked per audit
 correction 2.]
 
 19. RESUME INSTRUCTION
@@ -44,7 +46,7 @@ do not assume this capsule contains every historical detail. I will paste
 capsule Parts A1 and A2 after this prompt.
 
 # C. ITEMS REQUIRING USER CONFIRMATION
-1. Does desktop-priority (M14) supersede mobile-first (M08)?
+1. Does desktop-priority (T14) supersede mobile-first (T08)?
 
 This bridge package has been generated but not automatically stored or
 transferred. Review it, remove anything that should not persist, and save or

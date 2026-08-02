@@ -1,0 +1,52 @@
+context_bridge:
+  metadata:
+    capsule_id: "CB-DEMO-001"
+    created: "Not supplied"
+    version: "1"
+    previous_capsule: "None"
+    bridge_mode: "Standard"
+  project: "Trailhead Tracker"
+  assistant_roles:
+    - "Software build assistant for a small hike-logging web app"
+  current_objective: "Add CSV export of all logged hikes"
+  current_task: "Begin CSV export implementation; log form just completed"
+  confirmed_requirements:
+    - "Log hikes with date, trail name, distance, elevation gain, notes (M03)"
+    - "Offline support eventually (M03; timing unspecified)"
+  constraints:
+    - "Privacy first: no cloud sync in v1 (M07)"
+  active_decisions:
+    - "SQLite for storage, explicitly approved (M04-M05)"
+  completed_work:
+    - "schema.sql v2 including elevation_gain (M11)"
+    - "Log form with date/distance validation (M17)"
+  current_working_state: "Schema and log form done; CSV export not started"
+  artifacts:
+    - artifact: "schema.sql"
+      type: "database schema"
+      version_or_status: "v2"
+      source_or_location: "Referenced at M11; location not supplied"
+  rejected_and_superseded_directions:
+    - "Cloud sync rejected for v1 (M07); privacy rationale; revisit in v2"
+  open_questions:
+    - "Layout priority: mobile-first (M08) vs desktop-priority (M14)"
+  risks_and_uncertainties:
+    - "Offline scope undefined"
+    - "Layout conflict unresolved"
+  next_actions:
+    - "Confirm layout priority (C1)"
+    - "Implement CSV export against schema.sql v2"
+  user_preferences:
+    - "Privacy-conscious; prefers moving fast (M16)"
+  do_not_forget:
+    - "Cloud sync is rejected for v1"
+    - "Dark mode was suggested, never approved"
+  do_not_assume:
+    - "Do not assume desktop-priority was formally approved (C1)"
+  sensitive_information:
+    - "Test-feedback contact on file; see source M18 (masked)"
+  verification_status:
+    audit_verdict: "PASS WITH WARNINGS"
+    unresolved_confirmations:
+      - "Does desktop-priority (M14) supersede mobile-first (M08)?"
+  resume_instruction: "Confirm layout priority (C1), then implement CSV export of all hikes against schema.sql v2"

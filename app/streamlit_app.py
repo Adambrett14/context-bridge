@@ -1,8 +1,8 @@
 """Context Bridge — Streamlit entrypoint.
 
-M2: the demo runs end-to-end through the real orchestrator with the
-DemoProvider (no network, no key). The custom-run form validates source and
-demonstrates the SOURCE REQUIRED guard; live providers arrive in M3.
+M3: custom runs execute live against BYOK (OpenAI-compatible), local
+Ollama, or an optional owner-secret provider. Demo replay unchanged.
+Stateless: nothing is stored server-side; keys never leave the session.
 """
 
 import sys
@@ -13,19 +13,34 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import streamlit as st  # noqa: E402
+from pydantic import SecretStr  # noqa: E402
 
 from app.application.pipeline_orchestrator import PipelineOrchestrator  # noqa: E402
 from app.application.prompt_assembler import PromptAssembler  # noqa: E402
-from app.domain.enums import BridgeMode, ProviderMode  # noqa: E402
+from app.domain.enums import BridgeMode, ProviderMode, StageStatus  # noqa: E402
 from app.domain.errors import ContextBridgeError  # noqa: E402
 from app.domain.models import (  # noqa: E402
     SOURCE_REQUIRED_TEXT,
+    PipelineRunState,
     SourceBundle,
     UserInput,
 )
 from app.infrastructure.file_loader import load_text_upload  # noqa: E402
+from app.infrastructure.providers.base import Provider  # noqa: E402
 from app.infrastructure.providers.demo_provider import DemoProvider  # noqa: E402
-from app.ui.stage_tabs import render_stage_results  # noqa: E402
+from app.infrastructure.providers.ollama_provider import (  # noqa: E402
+    DEFAULT_OLLAMA_ENDPOINT,
+    OllamaProvider,
+)
+from app.infrastructure.providers.openai_compatible_provider import (  # noqa: E402
+    OpenAICompatibleProvider,
+)
+from app.infrastructure.providers.owner_secret_provider import (  # noqa: E402
+    build_owner_provider,
+)
+from app.infrastructure.secrets_reader import read_app_secrets  # noqa: E402
+from app.ui.provider_panel import ProviderChoice, render_provider_panel  # noqa: E402
+from app.ui.stage_tabs import STAGE_LABELS, render_stage_results  # noqa: E402
 
 APP_DIR = Path(__file__).resolve().parent
 PROMPTS_DIR = APP_DIR / "prompts"
@@ -38,6 +53,12 @@ LARGE_RUN_NOTE = (
     "model/host/browser limits can still interrupt a run — those are "
     "surfaced honestly as external failures. For private or massive "
     "transcripts, local mode is recommended."
+)
+
+EXTERNAL_FAILURE_GUIDANCE = (
+    "Options: retry; try a smaller/faster model or another provider; lower "
+    "the adaptive chunk threshold in Advanced; or run locally with Ollama. "
+    "Context Bridge applied no size cap of its own."
 )
 
 
@@ -72,22 +93,53 @@ def render_demo_tab() -> None:
         render_stage_results(state, demo_labeled=True)
 
 
-def render_custom_tab() -> None:
-    st.markdown("**Custom run — bring your own source material.**")
-    st.caption(LARGE_RUN_NOTE)
-    with st.form("custom_run_form"):
-        project_name = st.text_input("Project name (optional)")
-        bridge_mode = st.selectbox("Bridge mode", [m.value for m in BridgeMode])
-        uploaded = st.file_uploader(
-            "Source transcript (.txt / .md)", type=["txt", "md"]
+def _build_provider(
+    choice: ProviderChoice, owner_provider: Provider | None
+) -> Provider | None:
+    if choice.mode is ProviderMode.OWNER_SECRET:
+        if owner_provider is None:
+            st.error("Owner provider is not configured on this deployment.")
+            return None
+        return owner_provider
+    if choice.mode is ProviderMode.LOCAL_OLLAMA:
+        if not choice.model_name.strip():
+            st.error("Enter the local model name to run against Ollama.")
+            return None
+        return OllamaProvider(
+            model_name=choice.model_name.strip(),
+            endpoint=choice.endpoint.strip() or DEFAULT_OLLAMA_ENDPOINT,
         )
-        pasted = st.text_area("Pasted context", height=200)
-        objective = st.text_area(
-            "Current objective / carry-forward instructions", height=100
+    missing = [
+        name
+        for name, value in (
+            ("base URL", choice.base_url),
+            ("model name", choice.model_name),
+            ("API key", choice.api_key),
         )
-        submitted = st.form_submit_button("Check source & prepare run")
-    if not submitted:
-        return
+        if not value.strip()
+    ]
+    if missing:
+        st.error(
+            "BYOK needs: " + ", ".join(missing) + ". "
+            "(Config completeness — not a size cap.)"
+        )
+        return None
+    return OpenAICompatibleProvider(
+        base_url=choice.base_url.strip(),
+        model_name=choice.model_name.strip(),
+        api_key=choice.api_key,
+    )
+
+
+def _execute_custom_run(
+    choice: ProviderChoice,
+    owner_provider: Provider | None,
+    project_name: str,
+    bridge_mode: str,
+    uploaded: object,
+    pasted: str,
+    objective: str,
+) -> None:
     uploaded_text: str | None = None
     uploaded_name: str | None = None
     if uploaded is not None:
@@ -104,29 +156,97 @@ def render_custom_tab() -> None:
         uploaded_source_filename=uploaded_name,
         pasted_context=pasted or None,
         current_objective=objective or None,
+        provider_mode=choice.mode,
+        model_name=choice.model_name or None,
+        base_url=(choice.base_url or choice.endpoint) or None,
+        user_api_key=SecretStr(choice.api_key) if choice.api_key else None,
+        acknowledge_external_limits=choice.acknowledge_external_limits,
     )
     bundle = SourceBundle.from_user_input(user_input)
     if not bundle.usable_source_present:
         st.error(SOURCE_REQUIRED_TEXT)
         return
-    st.success(
-        f"Source accepted: {len(bundle.source_parts)} part(s), "
-        f"{len(bundle.combined_source_text()):,} characters. "
-        "No app-defined cap applied."
+    provider = _build_provider(choice, owner_provider)
+    if provider is None:
+        return
+    status = st.status("Running Context Bridge pipeline...", expanded=True)
+
+    def on_start(stage) -> None:
+        status.write(f"▶️ {STAGE_LABELS[stage]} — running...")
+
+    def on_complete(result) -> None:
+        icon = "✅" if result.status is StageStatus.COMPLETE else "❌"
+        status.write(f"{icon} {STAGE_LABELS[result.stage_name]}")
+
+    orchestrator = PipelineOrchestrator(
+        provider,
+        PromptAssembler(PROMPTS_DIR),
+        chunk_threshold_chars=choice.chunk_threshold_chars,
+        on_stage_start=on_start,
+        on_stage_complete=on_complete,
     )
-    st.info(
-        "**Live provider execution arrives in M3** (BYOK / local Ollama). "
-        "The Demo tab runs the full pipeline today. Your text was processed "
-        "in this session only and is not stored."
+    state = orchestrator.run(bundle)
+    st.session_state["custom_run_state"] = state
+    status.update(
+        label=f"Pipeline finished: {state.final_status}",
+        state="complete" if state.final_status == "complete" else "error",
+        expanded=False,
     )
+
+
+def _render_run_outcome(state: PipelineRunState) -> None:
+    for warning in state.user_visible_warnings:
+        st.warning(warning)
+    if state.final_status != "complete":
+        shown = set()
+        for result in state.all_results():
+            for error in result.errors:
+                if error not in shown:
+                    st.error(error)
+                    shown.add(error)
+        if state.final_status == "failed_external_limit":
+            st.info(EXTERNAL_FAILURE_GUIDANCE)
+    render_stage_results(state, demo_labeled=False)
+
+
+def render_custom_tab() -> None:
+    st.markdown("**Custom run — your source, your provider.**")
+    st.caption(LARGE_RUN_NOTE)
+    owner_provider = build_owner_provider(read_app_secrets())
+    choice = render_provider_panel(owner_available=owner_provider is not None)
+    st.divider()
+    project_name = st.text_input("Project name (optional)")
+    bridge_mode = st.selectbox("Bridge mode", [m.value for m in BridgeMode])
+    uploaded = st.file_uploader("Source transcript (.txt / .md)", type=["txt", "md"])
+    pasted = st.text_area("Pasted context", height=200)
+    objective = st.text_area(
+        "Current objective / carry-forward instructions", height=100
+    )
+    if st.button("🚀 Run Context Bridge", type="primary"):
+        _execute_custom_run(
+            choice, owner_provider, project_name, bridge_mode,
+            uploaded, pasted, objective,
+        )
+    state = st.session_state.get("custom_run_state")
+    if state is not None:
+        _render_run_outcome(state)
 
 
 def render_local_tab() -> None:
     st.markdown(
-        "**Local LLM mode (arrives in M3).** Clone the repo, run Ollama or "
-        "another local OpenAI-compatible endpoint, and point Context Bridge "
-        "at it. Recommended for private or very large transcripts. Full "
-        "setup docs land in M4 (docs/local_ollama.md)."
+        "**Run Context Bridge locally with a local model** — recommended "
+        "for private or very large transcripts.\n\n"
+        "1. Clone the repo and follow the README local setup (venv, "
+        "`pip install -r requirements.txt`, `streamlit run "
+        "app/streamlit_app.py`).\n"
+        "2. Install and start Ollama, then pull a model. Exact commands: "
+        "[VERIFY current Ollama docs].\n"
+        f"3. In **Custom run → Local Ollama**, set the endpoint (default "
+        f"`{DEFAULT_OLLAMA_ENDPOINT}` [VERIFY]) and your pulled model name.\n"
+        "4. Run — your transcript never leaves your machine.\n\n"
+        "**Note:** this hosted page cannot reach `localhost` on your "
+        "computer. Local mode means running the app locally too. Full "
+        "walkthrough lands in `docs/local_ollama.md` (M4)."
     )
 
 

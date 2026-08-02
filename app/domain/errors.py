@@ -31,3 +31,11 @@ class MalformedModelOutputError(ContextBridgeError):
 
 class YamlInvalidError(ContextBridgeError):
     category = ErrorCategory.YAML_INVALID
+
+
+class ProviderCallError(ContextBridgeError):
+    """Raised by providers. Message must be user-facing and already redacted."""
+
+    def __init__(self, message: str, category: ErrorCategory) -> None:
+        super().__init__(message)
+        self.category = category
